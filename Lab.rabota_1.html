@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Лабораторна робота: Ряд Тейлора для ch(x)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 25px;
+      line-height: 1.5;
+    }
+    fieldset {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    legend {
+      font-weight: bold;
+      padding: 0 5px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: inline-block;
+      width: 170px;
+    }
+    input[type="number"] {
+      padding: 4px;
+      width: 120px;
+    }
+    button {
+      padding: 6px 14px;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 6px 10px;
+      text-align: right;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .result-box {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Рівень 1 -->
+  <fieldset>
+    <legend>Рівень 1: Одне значення суми ряду</legend>
+    <div class="form-group">
+      <label for="x1">Аргумент x:</label>
+      <input type="number" id="x1" value="1.5" step="any">
+    </div>
+    <div class="form-group">
+      <label for="eps1">Точність ε:</label>
+      <input type="number" id="eps1" value="0.0001" step="any">
+    </div>
+    <button type="button" onclick="calculateLevel1()">Обчислити суму</button>
+    <div id="output1" class="result-box"></div>
+  </fieldset>
+
+  <!-- Рівні 2 та 3 -->
+  <fieldset>
+    <legend>Рівні 2 та 3: Таблиця значень та чисельний інтеграл</legend>
+    <div class="form-group">
+      <label for="xStart">Початок інтервалу (a):</label>
+      <input type="number" id="xStart" value="0" step="any">
+    </div>
+    <div class="form-group">
+      <label for="xEnd">Кінець інтервалу (b):</label>
+      <input type="number" id="xEnd" value="2" step="any">
+    </div>
+    <div class="form-group">
+      <label for="xStep">Крок (h):</label>
+      <input type="number" id="xStep" value="0.2" step="any">
+    </div>
+    <div class="form-group">
+      <label for="eps2">Точність ряду ε:</label>
+      <input type="number" id="eps2" value="0.0001" step="any">
+    </div>
+    <button type="button" onclick="calculateLevels2and3()">Сформувати таблицю та інтеграл</button>
+
+    <div id="integralOutput" class="result-box"></div>
+    <div id="tableOutput"></div>
+  </fieldset>
+
+  <script>
+    // Обчислення суми ряду ch(x) за допомогою циклу while
+    function computeChSeries(x, eps) {
+      let sum = 1.0;
+      let term = 1.0;
+      let n = 1;
+
+      while (Math.abs(term) >= eps) {
+        // Рекурентне відношення: term * x^2 / (2n * (2n - 1))
+        term *= (x * x) / ((2 * n) * (2 * n - 1));
+        sum += term;
+        n++;
+      }
+
+      return {
+        sum: sum,
+        termsCount: n
+      };
+    }
+
+    // Чисельне інтегрування методом трапецій (цикл for)
+    function integrateTrapezoidal(a, b, nSteps, eps) {
+      const h = (b - a) / nSteps;
+      let integralSum = (computeChSeries(a, eps).sum + computeChSeries(b, eps).sum) / 2.0;
+
+      for (let i = 1; i < nSteps; i++) {
+        const x = a + i * h;
+        integralSum += computeChSeries(x, eps).sum;
+      }
+
+      return integralSum * h;
+    }
+
+    // Обробник для Рівня 1
+    function calculateLevel1() {
+      const x = parseFloat(document.getElementById('x1').value);
+      const eps = parseFloat(document.getElementById('eps1').value);
+
+      if (isNaN(x) || isNaN(eps) || eps <= 0) {
+        alert("Введіть коректні чисельні дані!");
+        return;
+      }
+
+      const res = computeChSeries(x, eps);
+      const exact = Math.cosh(x);
+      const error = Math.abs(res.sum - exact);
+
+      document.getElementById('output1').innerHTML = `
+        Сума ряду: ${res.sum.toFixed(6)} <br>
+        Точне значення (Math.cosh): ${exact.toFixed(6)} <br>
+        Абсолютна похибка: ${error.toExponential(4)} <br>
+        Використано доданків: ${res.termsCount}
+      `;
+    }
+
+    // Обробник для Рівнів 2 та 3
+    function calculateLevels2and3() {
+      const a = parseFloat(document.getElementById('xStart').value);
+      const b = parseFloat(document.getElementById('xEnd').value);
+      const step = parseFloat(document.getElementById('xStep').value);
+      const eps = parseFloat(document.getElementById('eps2').value);
+
+      if (isNaN(a) || isNaN(b) || isNaN(step) || isNaN(eps) || step <= 0 || a >= b) {
+        alert("Перевірте вхідні дані (a < b, step > 0)!");
+        return;
+      }
+
+      let tableHtml = `
+        <table>
+          <thead>
+            <tr>
+              <th>№</th>
+              <th>x</th>
+              <th>Сума ряду ch(x)</th>
+              <th>Еталон (Math.cosh)</th>
+              <th>К-сть доданків</th>
+              <th>Похибка</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      let counter = 1;
+      // Використання циклу do...while для обходу аргументу
+      let currentX = a;
+      do {
+        // Усунення неточностей float-арифметики
+        const cleanX = parseFloat(currentX.toFixed(8));
+        const res = computeChSeries(cleanX, eps);
+        const exact = Math.cosh(cleanX);
+        const error = Math.abs(res.sum - exact);
+
+        tableHtml += `
+          <tr>
+            <td>${counter}</td>
+            <td>${cleanX.toFixed(3)}</td>
+            <td>${res.sum.toFixed(6)}</td>
+            <td>${exact.toFixed(6)}</td>
+            <td>${res.termsCount}</td>
+            <td>${error.toExponential(3)}</td>
+          </tr>
+        `;
+
+        currentX += step;
+        counter++;
+      } while (currentX <= b + step / 2);
+
+      tableHtml += `</tbody></table>`;
+      document.getElementById('tableOutput').innerHTML = tableHtml;
+
+      // Обчислення інтеграла методом трапецій
+      const numSteps = 500;
+      const numIntegral = integrateTrapezoidal(a, b, numSteps, eps);
+      
+      // Аналітичний інтеграл від ch(x) = sh(b) - sh(a)
+      const exactIntegral = Math.sinh(b) - Math.sinh(a);
+      const intDiff = Math.abs(numIntegral - exactIntegral);
+
+      document.getElementById('integralOutput').innerHTML = `
+        Период інтегрування [${a}; ${b}]: <br>
+        Чисельний інтеграл ряду (трапеції, n=${numSteps}): ${numIntegral.toFixed(6)} <br>
+        Точний інтеграл (sh(b) - sh(a)): ${exactIntegral.toFixed(6)} <br>
+        Різниця: ${intDiff.toExponential(4)}
+      `;
+    }
+  </script>
+</body>
+</html>

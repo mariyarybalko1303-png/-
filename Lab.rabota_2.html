@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Лабораторна робота №2: Обробка рядків засобами JavaScript</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 25px;
+      line-height: 1.5;
+    }
+    fieldset {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    legend {
+      font-weight: bold;
+      padding: 0 5px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: inline-block;
+      width: 170px;
+      vertical-align: top;
+    }
+    input[type="text"] {
+      padding: 4px;
+      width: 320px;
+    }
+    button {
+      padding: 6px 14px;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .result-box {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Рівень 1 (Завдання 5) -->
+  <fieldset>
+    <legend>Рівень 1: Функція ucFirst(str)</legend>
+    <div class="form-group">
+      <label for="str1">Вхідний рядок:</label>
+      <input type="text" id="str1" value="hello world">
+    </div>
+    <button type="button" onclick="handleLevel1()">Перетворити рядок</button>
+    <div id="output1" class="result-box"></div>
+  </fieldset>
+
+  <!-- Рівень 2 (Завдання 5) -->
+  <fieldset>
+    <legend>Рівень 2: Пошук слів із входженням "man"</legend>
+    <div class="form-group">
+      <label for="str2">Вхідний текст:</label>
+      <input type="text" id="str2" value="The manager made an announcement to every single gentleman and human.">
+    </div>
+    <button type="button" onclick="handleLevel2()">Знайти слова</button>
+    <div id="output2" class="result-box"></div>
+    <div id="tableOutput2"></div>
+  </fieldset>
+
+  <!-- Рівень 3 (Завдання 5) -->
+  <fieldset>
+    <legend>Рівень 3: Додавання "the" перед словами на літеру 'a'/'а'</legend>
+    <div class="form-group">
+      <label for="str3">Вхідне речення:</label>
+      <input type="text" id="str3" value="apple orange banana apricot ананас абрикос">
+    </div>
+    <button type="button" onclick="handleLevel3()">Обробити рядок</button>
+    <div id="output3" class="result-box"></div>
+  </fieldset>
+
+  <script>
+    // ==========================================
+    // ЛОГІКА ФУНКЦІЙ (відповідно до завдання)
+    // ==========================================
+
+    // Рівень 1, Завдання 5: перший символ великий
+    function ucFirst(str) {
+      if (!str) return str;
+      return str[0].toUpperCase() + str.slice(1);
+    }
+
+    // Рівень 2, Завдання 5: слова, що містять підрядок "man"
+    function findWordsWithMan(str) {
+      if (!str) return [];
+      let words = str.split(/[\s,.;:!?()"-]+/);
+      let matchedWords = [];
+
+      for (let word of words) {
+        if (word.length > 0 && word.toLowerCase().includes("man")) {
+          matchedWords.push(word);
+        }
+      }
+      return matchedWords;
+    }
+
+    // Рівень 3, Завдання 5: додати "the" перед словами на 'a' (лат/укр)
+    function addTheBeforeWords(str) {
+      if (!str) return "";
+      let words = str.split(" ");
+      let processed = [];
+
+      for (let word of words) {
+        if (word.length > 0) {
+          let firstChar = word[0].toLowerCase();
+          if (firstChar === 'a' || firstChar === 'а') {
+            processed.push("the " + word);
+            continue;
+          }
+        }
+        processed.push(word);
+      }
+      return processed.join(" ");
+    }
+
+    // ==========================================
+    // ОБРОБНИКИ ПОДІЙ ІНТЕРФЕЙСУ
+    // ==========================================
+
+    function handleLevel1() {
+      const input = document.getElementById('str1').value;
+      if (input.trim() === "") {
+        alert("Введіть непорожній рядок!");
+        return;
+      }
+      const result = ucFirst(input);
+      document.getElementById('output1').innerHTML = `Результат: <span>${result}</span>`;
+    }
+
+    function handleLevel2() {
+      const input = document.getElementById('str2').value;
+      if (input.trim() === "") {
+        alert("Введіть рядок для аналізу!");
+        return;
+      }
+
+      const words = findWordsWithMan(input);
+      const outBox = document.getElementById('output2');
+      const tableBox = document.getElementById('tableOutput2');
+
+      if (words.length === 0) {
+        outBox.innerHTML = `Слів із буквосполученням "man" не знайдено.`;
+        tableBox.innerHTML = "";
+        return;
+      }
+
+      outBox.innerHTML = `Знайдено слів: ${words.length}`;
+
+      let tableHtml = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 50px;">№</th>
+              <th>Знайдене слово</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      for (let i = 0; i < words.length; i++) {
+        tableHtml += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${words[i]}</td>
+          </tr>
+        `;
+      }
+
+      tableHtml += `</tbody></table>`;
+      tableBox.innerHTML = tableHtml;
+    }
+
+    function handleLevel3() {
+      const input = document.getElementById('str3').value;
+      if (input.trim() === "") {
+        alert("Введіть речення!");
+        return;
+      }
+      const result = addTheBeforeWords(input);
+      document.getElementById('output3').innerHTML = `Оброблений рядок: <br><span style="font-weight: normal;">${result}</span>`;
+    }
+  </script>
+</body>
+</html>
