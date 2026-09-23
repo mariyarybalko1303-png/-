@@ -1,0 +1,3 @@
+val numbers = listOf(1, 2, 3, 4, 5)
+val squared = numbers.map { it * it }
+println("Результат обчислень: $squared")
